@@ -31,8 +31,13 @@ import java.util.stream.Stream;
 public interface EventStorageEngine {
 
 
+    default boolean refuseSnapshot(SerializedEvent e) {
+        return false;
+    }
+
     enum SearchHint {
-        RECENT_ONLY
+        RECENT_ONLY,
+        FULL
     }
 
     /**
@@ -85,7 +90,7 @@ public interface EventStorageEngine {
      */
     Optional<Long> getLastSequenceNumber(String aggregateIdentifier, SearchHint... searchHints);
 
-    default Optional<Long> getLastSequenceNumber(String aggregateIdentifier, int maxSegmentsHint, long maxTokenHint) {
+    default Optional<Long> getLastSequenceNumber(String aggregateIdentifier, SearchHint maxSegmentsHint, long maxTokenHint) {
         return getLastSequenceNumber(aggregateIdentifier);
     }
 
@@ -154,7 +159,9 @@ public interface EventStorageEngine {
      * @param eventConsumer     the consumer to apply for each event
      */
     void processEventsPerAggregateHighestFirst(String aggregateId, long minSequenceNumber, long maxSequenceNumber,
-                                               int maxResults, Consumer<SerializedEvent> eventConsumer);
+                                               int maxResults,
+                                               Predicate<SerializedEvent> stopCondition,
+                                               Consumer<SerializedEvent> eventConsumer);
 
 
     /**

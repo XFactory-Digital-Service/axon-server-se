@@ -9,10 +9,19 @@
 
 package io.axoniq.axonserver.rest;
 
-import io.axoniq.axonserver.interceptor.NoOpEventInterceptors;
 import io.axoniq.axonserver.grpc.event.Event;
 import io.axoniq.axonserver.grpc.event.EventWithToken;
-import io.axoniq.axonserver.localstorage.*;
+import io.axoniq.axonserver.interceptor.NoOpEventInterceptors;
+import io.axoniq.axonserver.localstorage.EventStorageEngine;
+import io.axoniq.axonserver.localstorage.EventStoreFactory;
+import io.axoniq.axonserver.localstorage.EventType;
+import io.axoniq.axonserver.localstorage.EventTypeContext;
+import io.axoniq.axonserver.localstorage.LocalEventStore;
+import io.axoniq.axonserver.localstorage.QueryOptions;
+import io.axoniq.axonserver.localstorage.Registration;
+import io.axoniq.axonserver.localstorage.SerializedEvent;
+import io.axoniq.axonserver.localstorage.SerializedEventWithToken;
+import io.axoniq.axonserver.localstorage.SerializedTransactionWithToken;
 import io.axoniq.axonserver.localstorage.query.QueryEventsRequestStreamObserver;
 import io.axoniq.axonserver.topology.DefaultEventStoreLocator;
 import io.axoniq.axonserver.topology.EventStoreLocator;
@@ -83,6 +92,7 @@ public class HttpStreamingQueryTest {
             @Override
             public void processEventsPerAggregateHighestFirst(String aggregateId, long actualMinSequenceNumber,
                                                               long actualMaxSequenceNumber, int maxResults,
+                                                              Predicate<SerializedEvent> snapshotStopCondition,
                                                               Consumer<SerializedEvent> eventConsumer) {
 
             }

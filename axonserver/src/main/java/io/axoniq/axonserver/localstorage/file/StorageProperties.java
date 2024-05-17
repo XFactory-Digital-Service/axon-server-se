@@ -123,6 +123,7 @@ public class StorageProperties implements Cloneable {
     };
     private String indexFormat;
     private int segmentsForSequenceNumberCheck = 10;
+    private int globalIndexSegmentsCheck = Integer.MAX_VALUE;
 
     public StorageProperties(SystemInfoProvider systemInfoProvider) {
         this.systemInfoProvider = systemInfoProvider;
@@ -427,5 +428,25 @@ public class StorageProperties implements Cloneable {
 
     public int segmentsForSequenceNumberCheck() {
         return segmentsForSequenceNumberCheck;
+    }
+
+    public StorageProperties withSegmentsForSequenceNumberCheck(int segmentsForSequenceNumberCheck) {
+        StorageProperties clone = cloneProperties();
+        clone.segmentsForSequenceNumberCheck = segmentsForSequenceNumberCheck;
+        return clone;
+    }
+
+    public int globalIndexSegmentsCheck() {
+        return globalIndexSegmentsCheck;
+    }
+
+    public StorageProperties withGlobalIndexSegmentsCheck(int globalSegmentsCheck) {
+        StorageProperties clone = cloneProperties();
+        clone.globalIndexSegmentsCheck = globalSegmentsCheck;
+        return clone;
+    }
+
+    public void setGlobalIndexSegmentsCheck(int globalIndexSegmentsCheck) {
+        this.globalIndexSegmentsCheck = globalIndexSegmentsCheck;
     }
 }

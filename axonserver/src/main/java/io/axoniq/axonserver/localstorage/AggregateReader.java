@@ -40,7 +40,8 @@ public class AggregateReader {
         if (useSnapshots) {
             Optional<SerializedEvent> snapshot = snapshotReader.readSnapshot(aggregateId,
                                                                              minSequenceNumber,
-                                                                             maxSequenceNumber);
+                                                                             maxSequenceNumber,
+                                                                             eventStorageEngine::refuseSnapshot);
             if (snapshot.isPresent()) {
                 eventConsumer.accept(snapshot.get());
                 actualMinSequenceNumber = snapshot.get().asEvent().getAggregateSequenceNumber() + 1;
@@ -56,6 +57,7 @@ public class AggregateReader {
                                            minSequenceNumber,
                                            maxSequenceNumber,
                                            maxResults > 0 ? maxResults : Integer.MAX_VALUE,
+                                           eventStorageEngine::refuseSnapshot,
                                            e -> eventConsumer.accept(e.asSnapshot()));
     }
 
@@ -64,7 +66,7 @@ public class AggregateReader {
     }
 
     public long readHighestSequenceNr(String aggregateId, int maxSegmentsHint, long maxTokenHint) {
-        return eventStorageEngine.getLastSequenceNumber(aggregateId, maxSegmentsHint, maxTokenHint).orElse(-1L);
+        return eventStorageEngine.getLastSequenceNumber(aggregateId, EventStorageEngine.SearchHint.FULL, maxTokenHint).orElse(-1L);
     }
 
     /**
@@ -104,7 +106,7 @@ public class AggregateReader {
                                    long minSequenceNumber,
                                    long maxSequenceNumber){
         if (useSnapshots){
-            return snapshotReader.snapshot(aggregateId, minSequenceNumber, maxSequenceNumber)
+            return snapshotReader.snapshot(aggregateId, minSequenceNumber, maxSequenceNumber, eventStorageEngine::refuseSnapshot)
             .filter(snapshot -> snapshot.getAggregateSequenceNumber() < maxSequenceNumber);
         } else {
             return Mono.empty();

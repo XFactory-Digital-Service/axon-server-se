@@ -8,8 +8,10 @@ import io.axoniq.axonserver.metric.MeterFactory;
 import io.axoniq.axonserver.test.TestUtils;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.assertj.core.api.Assertions;
-import org.junit.*;
-import org.junit.rules.*;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -23,8 +25,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import static org.junit.Assert.*;
-import static org.junit.Assume.*;
+import static io.axoniq.axonserver.localstorage.EventStorageEngine.SearchHint.FULL;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
 
 /**
  * Tests for {@link StandardIndexManager}.
@@ -177,7 +183,7 @@ public class StandardIndexManagerTest {
         storageProperties.setStorage(eventStore);
         indexManager.init();
 
-        Optional<Long> result = indexManager.getLastSequenceNumber("Aggregate-25", Integer.MAX_VALUE, Long.MAX_VALUE);
+        Optional<Long> result = indexManager.getLastSequenceNumber("Aggregate-25", FULL, Long.MAX_VALUE);
 
         Assertions.assertThat(result).isNotEmpty();
     }

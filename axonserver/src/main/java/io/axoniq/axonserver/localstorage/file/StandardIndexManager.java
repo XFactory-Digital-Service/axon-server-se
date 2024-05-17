@@ -11,6 +11,7 @@ package io.axoniq.axonserver.localstorage.file;
 
 import io.axoniq.axonserver.exception.ErrorCode;
 import io.axoniq.axonserver.exception.MessagingPlatformException;
+import io.axoniq.axonserver.localstorage.EventStorageEngine.SearchHint;
 import io.axoniq.axonserver.localstorage.EventType;
 import io.axoniq.axonserver.metric.BaseMetricName;
 import io.axoniq.axonserver.metric.MeterFactory;
@@ -49,6 +50,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import static io.axoniq.axonserver.localstorage.EventStorageEngine.SearchHint.RECENT_ONLY;
 import static io.axoniq.axonserver.localstorage.file.FileUtils.name;
 
 /**
@@ -300,12 +302,14 @@ public class StandardIndexManager implements IndexManager {
      * Returns the last sequence number of an aggregate if this is found.
      *
      * @param aggregateId  the identifier for the aggregate
-     * @param maxSegments  maximum number of segments to check for the aggregate
+     * @param searchHint  hit to set the maximum number of segments to check for the aggregate
      * @param maxTokenHint maximum token to check
      * @return last sequence number for the aggregate (if found)
      */
     @Override
-    public Optional<Long> getLastSequenceNumber(String aggregateId, int maxSegments, long maxTokenHint) {
+    public Optional<Long> getLastSequenceNumber(String aggregateId, SearchHint searchHint, long maxTokenHint) {
+        int maxSegments = searchHint.equals(RECENT_ONLY) ? storageProperties.get().segmentsForSequenceNumberCheck() :
+                Integer.MAX_VALUE;
         int checked = 0;
         for (Long segment : activeIndexes.descendingKeySet()) {
             if (checked >= maxSegments) {

@@ -14,6 +14,7 @@ import io.axoniq.axonserver.exception.ErrorCode;
 import io.axoniq.axonserver.exception.MessagingPlatformException;
 import io.axoniq.axonserver.grpc.event.Event;
 import io.axoniq.axonserver.localstorage.EventTypeContext;
+import io.axoniq.axonserver.localstorage.SerializedEvent;
 import io.axoniq.axonserver.localstorage.SerializedEventWithToken;
 import io.axoniq.axonserver.localstorage.StorageCallback;
 import io.axoniq.axonserver.localstorage.transformation.EventTransformer;
@@ -221,6 +222,16 @@ public class PrimaryEventStore extends SegmentBasedEventStore {
         int eventSize = eventBlockSize(eventList);
         WritePosition writePosition = claim(eventSize, eventList.size());
         return new FilePreparedTransaction(writePosition, eventSize, eventList);
+    }
+
+    @Override
+    public boolean refuseSnapshot(SerializedEvent snapshot) {
+        if (indexManager.limitedSegmentChecks()) {
+            long lastEvent = getLastSequenceNumber(snapshot.getAggregateIdentifier(), SearchHint.FULL, Long.MAX_VALUE)
+                    .orElse(-1L);
+            return lastEvent < snapshot.getAggregateSequenceNumber();
+        }
+        return false;
     }
 
     /**

@@ -15,6 +15,7 @@ import reactor.core.scheduler.Schedulers;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /**
@@ -34,24 +35,28 @@ public class SnapshotReader {
         this.dataFetcherSchedulerProvider = dataFetcherSchedulerSupplier;
     }
 
-    public Optional<SerializedEvent> readSnapshot(String aggregateId, long minSequenceNumber, long maxSequenceNumber) {
+    public Optional<SerializedEvent> readSnapshot(String aggregateId, long minSequenceNumber, long maxSequenceNumber, Predicate<SerializedEvent> stopCondition) {
         return datafileManagerChain
                 .getLastEvent(aggregateId, minSequenceNumber, maxSequenceNumber)
-                .map(SerializedEvent::asSnapshot);
+                .map(SerializedEvent::asSnapshot)
+                .filter(e -> !stopCondition.test(e));
     }
 
-    public Mono<SerializedEvent> snapshot(String aggregateId, long minSequenceNumber, long maxSequenceNumber) {
-        return Mono.fromCallable(()->readSnapshot(aggregateId,minSequenceNumber,maxSequenceNumber))
+    public Mono<SerializedEvent> snapshot(String aggregateId, long minSequenceNumber, long maxSequenceNumber, Predicate<SerializedEvent> stopCondition) {
+        return Mono.fromCallable(()->readSnapshot(aggregateId,minSequenceNumber,maxSequenceNumber, stopCondition))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .subscribeOn(Schedulers.fromExecutorService(dataFetcherSchedulerProvider.get()));
     }
 
-    public void streamByAggregateId(String aggregateId, long minSequenceNumber, long maxSequenceNumber, int maxResults, Consumer<SerializedEvent> eventConsumer) {
+    public void streamByAggregateId(String aggregateId, long minSequenceNumber, long maxSequenceNumber, int maxResults,
+                                    Predicate<SerializedEvent> stopCondition,
+                                    Consumer<SerializedEvent> eventConsumer) {
         datafileManagerChain.processEventsPerAggregateHighestFirst(aggregateId,
                                                                    minSequenceNumber,
                                                                    maxSequenceNumber,
                                                                    maxResults,
+                                                                   stopCondition,
                                                                    e -> eventConsumer.accept(e.asSnapshot()));
     }
 }

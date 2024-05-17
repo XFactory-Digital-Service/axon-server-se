@@ -9,6 +9,8 @@
 
 package io.axoniq.axonserver.localstorage.file;
 
+import io.axoniq.axonserver.localstorage.EventStorageEngine;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -53,7 +55,7 @@ public interface IndexManager {
      * @param maxTokenHint maximum token to check for events of this aggregate
      * @return the sequence number of the last event for the given aggregate
      */
-    Optional<Long> getLastSequenceNumber(String aggregateId, int maxSegments, long maxTokenHint);
+    Optional<Long> getLastSequenceNumber(String aggregateId, EventStorageEngine.SearchHint maxSegments, long maxTokenHint);
 
     /**
      * Validates that the index for the given segment exists.
@@ -116,4 +118,8 @@ public interface IndexManager {
      * @param indexEntries list of index entries to add
      */
     void addToActiveSegment(Long segment, Map<String, List<IndexEntry>> indexEntries);
+
+    default boolean limitedSegmentChecks() {
+        return false;
+    }
 }

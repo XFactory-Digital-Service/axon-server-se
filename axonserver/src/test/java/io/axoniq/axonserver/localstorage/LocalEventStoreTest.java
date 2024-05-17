@@ -9,7 +9,6 @@
 
 package io.axoniq.axonserver.localstorage;
 
-import io.axoniq.axonserver.plugin.ExecutionContext;
 import io.axoniq.axonserver.grpc.event.Event;
 import io.axoniq.axonserver.grpc.event.EventWithToken;
 import io.axoniq.axonserver.grpc.event.GetAggregateEventsRequest;
@@ -19,8 +18,10 @@ import io.axoniq.axonserver.grpc.event.QueryEventsRequest;
 import io.axoniq.axonserver.interceptor.EventInterceptors;
 import io.axoniq.axonserver.localstorage.transaction.StorageTransactionManager;
 import io.axoniq.axonserver.localstorage.transaction.StorageTransactionManagerFactory;
+import io.axoniq.axonserver.plugin.ExecutionContext;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import org.junit.*;
+import org.junit.Before;
+import org.junit.Test;
 import org.springframework.data.util.CloseableIterator;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
@@ -397,6 +398,7 @@ public class LocalEventStoreTest {
         @Override
         public void processEventsPerAggregateHighestFirst(String aggregateId, long actualMinSequenceNumber,
                                                           long actualMaxSequenceNumber, int maxResults,
+                                                          Predicate<SerializedEvent> stopCondition,
                                                           Consumer<SerializedEvent> eventConsumer) {
             for (int i = events.length - 1; i >= 0; i--) {
                 eventConsumer.accept(new SerializedEvent(events[i]));

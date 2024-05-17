@@ -68,7 +68,9 @@ public class FakeEventStore implements EventStorageEngine {
     @Override
     public void processEventsPerAggregateHighestFirst(String aggregateId, long actualMinSequenceNumber,
                                                       long actualMaxSequenceNumber,
-                                                      int maxResults, Consumer<SerializedEvent> eventConsumer) {
+                                                      int maxResults,
+                                                      Predicate<SerializedEvent> stopCondition,
+                                                      Consumer<SerializedEvent> eventConsumer) {
 
     }
 
